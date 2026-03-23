@@ -62,57 +62,24 @@ def _parse_header(header_text: str) -> GEFHeader:
     return h
 
 
-# Maps GEF quantity IDs to standardized Dutch column names.
-# See GEF standard (NEN 5140 / GEFV) for the full list.
-_GEF_QUANTITY_NAMES: dict[int, str] = {
-    1: "sondeertrajectlengte",
-    2: "conusweerstand",
-    3: "plaatswrijving",
-    4: "wrijvingsgetal",
-    5: "waterdruk_u1",
-    6: "waterdruk_u2",
-    7: "waterdruk_u3",
-    8: "hellingresultante",
-    9: "helling_ns",
-    10: "helling_ew",
-    11: "sondeertrajectlengte",
-    12: "gecorrigeerde_conusweerstand",
-    13: "netto_conusweerstand",
-    14: "poriespanning_verhouding",
-    15: "conusweerstand_netto",
-}
-
-
 def _parse_column_info(header_text: str) -> tuple[list[str], dict[int, str]]:
     """Return (column_names, column_voids) from #COLUMNINFO and #COLUMNVOID.
 
-    Column names are derived from the GEF quantity ID where known,
-    falling back to the name in the file.
-    column_voids maps column_nr (1-based) to its void string value.
+    Format: #COLUMNINFO= col_nr, unit, name, ...
+    column_names is a list indexed by column position (0-based).
+    column_voids maps col_nr (1-based) to its void string value.
     """
     columns: dict[int, str] = {}
     voids: dict[int, str] = {}
 
-    # Format: #COLUMNINFO= col_nr, unit, name, quantity_id
     for m in re.finditer(
-        r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*[^,]+\s*,\s*(\d+)",
+        r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*([^,\r\n]+)",
         header_text,
         re.IGNORECASE,
     ):
         col_nr = int(m.group(1))
-        quantity_id = int(m.group(2))
-        columns[col_nr] = _GEF_QUANTITY_NAMES.get(quantity_id, f"col_{col_nr}")
-
-    # Fallback: files without quantity ID use name only
-    if not columns:
-        for m in re.finditer(
-            r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*([^,\r\n]+)",
-            header_text,
-            re.IGNORECASE,
-        ):
-            col_nr = int(m.group(1))
-            name = m.group(2).strip().replace(" ", "_").lower()
-            columns[col_nr] = name
+        name = m.group(2).strip().replace(" ", "_").lower()
+        columns[col_nr] = name
 
     for m in re.finditer(
         r"#COLUMNVOID\s*=\s*(\d+)\s*,\s*([^\r\n]+)", header_text, re.IGNORECASE
