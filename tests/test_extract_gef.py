@@ -129,7 +129,7 @@ def test_data_rows(gef_file):
 def test_void_values_become_none(gef_file):
     """Test dat een void-waarde (999.999) wordt omgezet naar None."""
     profile = parse_gef(gef_file)
-    assert profile.rows[5]["conusweerstand"] is None
+    assert profile.rows[5]["conusweerstand"] is None # In de 6e rij (index 5) is conusweerstand 999.999, dus moet None zijn
 
 
 def test_to_records_includes_georeference(gef_file):
@@ -138,3 +138,19 @@ def test_to_records_includes_georeference(gef_file):
     records = profile.to_records()
     assert records[0]["x"] == pytest.approx(216320.000)
     assert records[0]["sondeertrajectlengte"] == pytest.approx(0.100)
+
+
+def test_eerste_rij_output(gef_file):
+    """Laat zien hoe de eerste rij van de output eruitziet na parsing.
+
+    Verwachte output eerste rij:
+    {'sondeertrajectlengte': 0.1, 'conusweerstand': 29.61,
+     'plaatselijke_wrijving': 0.255, 'wrijvingsgetal': 0.8}
+    """
+    profile = parse_gef(gef_file)
+    eerste_rij = profile.rows[0]
+
+    assert eerste_rij["sondeertrajectlengte"] == pytest.approx(0.1)
+    assert eerste_rij["conusweerstand"] == pytest.approx(29.61)
+    assert eerste_rij["plaatselijke_wrijving"] == pytest.approx(0.255)
+    assert eerste_rij["wrijvingsgetal"] == pytest.approx(0.8)

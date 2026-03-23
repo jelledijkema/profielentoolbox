@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/pip-compile requirements.in -o requirements.txt -q)",
+      "Bash(.venv/bin/pip-compile requirements-dev.in -o requirements-dev.txt -q)"
+    ]
+  }
+}

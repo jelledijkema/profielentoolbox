@@ -1,7 +1,7 @@
 # Profielentoolbox
 
 Een Python toolbox met tools voor de Profielentool:
-  - Uitpakken .GEF bestanden en teruggeven aan FME Form
+  1. Uitpakken .GEF bestanden en teruggeven aan FME Form
 
 ## Vereisten
 
