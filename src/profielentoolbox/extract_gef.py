@@ -20,11 +20,12 @@ def parse_gef(path: str | Path) -> GEFProfile:
     path = Path(path)
     text = path.read_text(encoding="utf-8", errors="replace")
 
-    header_text, _, data_text = text.partition("#EOH=")
+    header_text, _, data_text = text.partition("#EOH=") # Split header and data at the #EOH= marker
 
     header = _parse_header(header_text)
     column_names, column_voids = _parse_column_info(header_text)
-    rows = _parse_data(data_text, column_names, column_voids)
+    separator = _parse_separator(header_text)
+    rows = _parse_data(data_text, column_names, column_voids, separator)
 
     return GEFProfile(header=header, column_names=column_names, rows=rows)
 
@@ -34,7 +35,7 @@ def parse_gef(path: str | Path) -> GEFProfile:
 # ---------------------------------------------------------------------------
 
 def _parse_header(header_text: str) -> GEFHeader:
-    h = GEFHeader()
+    h = GEFHeader() # Start with an empty header and fill in fields as we find them
 
     if m := re.search(r"#XYID\s*=\s*[^,]*,\s*([\d.+-]+)\s*,\s*([\d.+-]+)", header_text, re.IGNORECASE):
         h.x = float(m.group(1))
@@ -61,17 +62,61 @@ def _parse_header(header_text: str) -> GEFHeader:
     return h
 
 
+# Maps GEF quantity IDs to standardized Dutch column names.
+# See GEF standard (NEN 5140 / GEFV) for the full list.
+_GEF_QUANTITY_NAMES: dict[int, str] = {
+    1: "sondeertrajectlengte",
+    2: "conusweerstand",
+    3: "plaatswrijving",
+    4: "wrijvingsgetal",
+    5: "waterdruk_u1",
+    6: "waterdruk_u2",
+    7: "waterdruk_u3",
+    8: "hellingresultante",
+    9: "helling_ns",
+    10: "helling_ew",
+    11: "sondeertrajectlengte",
+    12: "gecorrigeerde_conusweerstand",
+    13: "netto_conusweerstand",
+    14: "poriespanning_verhouding",
+    15: "conusweerstand_netto",
+}
+
+
 def _parse_column_info(header_text: str) -> tuple[list[str], dict[int, str]]:
-    """Return column names and void values from #COLUMNINFO and #COLUMNVOID."""
+    """Return (column_names, column_voids) from #COLUMNINFO and #COLUMNVOID.
+
+    Column names are derived from the GEF quantity ID where known,
+    falling back to the name in the file.
+    column_voids maps column_nr (1-based) to its void string value.
+    """
     columns: dict[int, str] = {}
     voids: dict[int, str] = {}
 
-    for m in re.finditer(r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*([^,\r\n]+)", header_text, re.IGNORECASE):
+    # Format: #COLUMNINFO= col_nr, unit, name, quantity_id
+    for m in re.finditer(
+        r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*[^,]+\s*,\s*(\d+)",
+        header_text,
+        re.IGNORECASE,
+    ):
         col_nr = int(m.group(1))
-        name = m.group(2).strip().replace(" ", "_").lower()
-        columns[col_nr] = name
+        quantity_id = int(m.group(2))
+        columns[col_nr] = _GEF_QUANTITY_NAMES.get(quantity_id, f"col_{col_nr}")
 
-    for m in re.finditer(r"#COLUMNVOID\s*=\s*(\d+)\s*,\s*([^\r\n]+)", header_text, re.IGNORECASE):
+    # Fallback: files without quantity ID use name only
+    if not columns:
+        for m in re.finditer(
+            r"#COLUMNINFO\s*=\s*(\d+)\s*,\s*[^,]+\s*,\s*([^,\r\n]+)",
+            header_text,
+            re.IGNORECASE,
+        ):
+            col_nr = int(m.group(1))
+            name = m.group(2).strip().replace(" ", "_").lower()
+            columns[col_nr] = name
+
+    for m in re.finditer(
+        r"#COLUMNVOID\s*=\s*(\d+)\s*,\s*([^\r\n]+)", header_text, re.IGNORECASE
+    ):
         col_nr = int(m.group(1))
         voids[col_nr] = m.group(2).strip()
 
@@ -83,13 +128,31 @@ def _parse_column_info(header_text: str) -> tuple[list[str], dict[int, str]]:
     return names, voids
 
 
-def _parse_data(data_text: str, column_names: list[str], column_voids: dict[int, str]) -> list[dict]:
+def _parse_separator(header_text: str) -> str:
+    """Return the column separator character defined in the header (default: comma)."""
+    if m := re.search(r"#COLUMNSEPARATOR\s*=\s*(.+)", header_text, re.IGNORECASE):
+        return m.group(1).strip()
+    return ","
+
+
+def _parse_data(
+    data_text: str,
+    column_names: list[str],
+    column_voids: dict[int, str],
+    separator: str = ",",
+) -> list[dict]:
+    """Parse data rows after #EOH=.
+
+    Values matching a column's void value are returned as None.
+    Record separator characters (e.g. '!') at the end of a line are ignored.
+    """
     rows = []
     for line in data_text.splitlines():
-        line = line.strip()
-        if not line or line.startswith("!"):
+        line = line.strip().rstrip("!")  # strip record separator
+        line = line.rstrip(separator).strip()  # strip trailing separator
+        if not line:
             continue
-        values = [v.strip() for v in line.split(",")]
+        values = [v.strip() for v in line.split(separator)]
         row = {}
         for i, val in enumerate(values):
             col_name = column_names[i] if i < len(column_names) else f"col_{i + 1}"
