@@ -1,0 +1,6 @@
+# Development dependencies
+-r requirements.in
+
+pip-tools
+pytest>=8.0
+ruff>=0.4
