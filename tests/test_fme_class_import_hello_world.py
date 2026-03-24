@@ -1,12 +1,14 @@
+#--- Code for testing ---
+#--- This part is mocking the code that would be in a PythonCaller that calls the hello_world tool. ---
+#--  Can be copied directly into a PythonCaller transformer ---
+
+
 import fme # This imports the stub, not the actual library
 from fme import BaseTransformer
 import fmeobjects # This imports the stub, not the actual library
 import sys
 import os
 
-#--- Code for testing ---
-#--- This part is mocking the code that would be in a PythonCaller that calls the hello_world tool. ---
-#--  Can be copied directly into a PythonCaller transformer ---
 
 class FeatureProcessor(BaseTransformer):
     """Template Class Interface:

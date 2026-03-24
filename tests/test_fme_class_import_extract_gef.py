@@ -1,12 +1,17 @@
+
+
+#--- Code for testing ---
+#--- This part is mocking the code that would be in a PythonCaller that calls the hello_world tool. ---
+#--  Can be copied directly into a PythonCaller transformer ---
+
+
 import fme # This imports the stub, not the actual library
 from fme import BaseTransformer
 import fmeobjects # This imports the stub, not the actual library
 import sys
 import os
 
-#--- Code for testing ---
-#--- This part is mocking the code that would be in a PythonCaller that calls the hello_world tool. ---
-#--  Can be copied directly into a PythonCaller transformer ---
+import json
 
 class FeatureProcessor(BaseTransformer):
     """Template Class Interface:
@@ -48,8 +53,7 @@ class FeatureProcessor(BaseTransformer):
                 
                 profile = self.parse_gef(gef_file_path)
                 print("Parse successful")
-                
-                print (profile.rows)
+            
                 
                 # Set attributes on the feature from the profile
                 feature.setAttribute('x_coordinate', profile.header.x)
@@ -61,13 +65,15 @@ class FeatureProcessor(BaseTransformer):
                 feature.setAttribute('test_id', profile.header.test_id)
                 feature.setAttribute('coordinate_system', profile.header.coordinate_system)
                 feature.setAttribute('column_names', ','.join(profile.column_names))
-                feature.setAttribute('data', str(profile.rows))
+                feature.setAttribute('data', json.dumps((profile.rows))) # dump van de data
                 
                 # Example: Set the first row's data (adjust as needed)
                 if profile.rows:
                     first_row = profile.rows[0]
                     for key, value in first_row.items():
                         feature.setAttribute(f'first_row_{key}', value)
+
+                
             except Exception as e:
                 print(f"Error processing feature: {e}")
                 # Optionally: self.reject_feature(feature, "PARSE_ERROR", str(e))
@@ -126,3 +132,20 @@ def test_parse_gef(sample_gef_path):
     assert feature.getAttribute('first_row_sondeertrajectlengte') == pytest.approx(0.100)
     assert feature.getAttribute('first_row_conusweerstand') == pytest.approx(29.610)
     assert feature.getAttribute('first_row_wrijvingsgetal') == pytest.approx(0.8)
+
+
+def test_data_is_valid_json(sample_gef_path):
+    """Test that the 'data' attribute contains valid JSON."""
+    processor = FeatureProcessor()
+    feature = fmeobjects.FMEFeature()
+    feature.setAttribute('fme_dataset', str(sample_gef_path))
+
+    processor.input(feature)
+
+    data_json = feature.getAttribute('data')
+    try:
+        data = json.loads(data_json)
+        assert isinstance(data, list), "Data should be a list of rows"
+        assert all(isinstance(row, dict) for row in data), "Each row should be a dict"
+    except json.JSONDecodeError:
+        pytest.fail("Data attribute is not valid JSON")
