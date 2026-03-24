@@ -26,7 +26,7 @@ class FeatureProcessor(BaseTransformer):
         """Base constructor for class members."""
         super().__init__()
         # Add path and import here
-        path = r'/home/jelledijkema/Klanten/Profielentool/src/' # change this to the actual path of your repo's src directory
+        path = r'/home/jelledijkema/Klanten/Profielentool/src/' # verander dit pad naar de locatie van jouw profielentoolbox package
         if os.path.exists(path):
             sys.path.insert(0, path)
             try:
