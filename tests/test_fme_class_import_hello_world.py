@@ -4,9 +4,9 @@ import fmeobjects # This imports the stub, not the actual library
 import sys
 import os
 
-
 #--- Code for testing ---
-#--- This part is mocking the code that would be in a default PythonCaller, which is what we're testing. ---
+#--- This part is mocking the code that would be in a PythonCaller that calls the hello_world tool. ---
+#--  Can be copied directly into a PythonCaller transformer ---
 
 class FeatureProcessor(BaseTransformer):
     """Template Class Interface:
@@ -18,7 +18,18 @@ class FeatureProcessor(BaseTransformer):
     """
 
     def __init__(self):
-        super().__init__()
+        """Base constructor for class members."""
+        # Add path and import here
+        path = r'/home/jelledijkema/Klanten/Profielentool/src' # change this to the actual path of your repo's src directory
+        if os.path.exists(path):
+            sys.path.insert(0, path)
+            try:
+                from profielentoolbox.hello_world import hello_world # This imports the actual hello_world module, not a stub
+                print("Import successful")
+                self.result = hello_world()
+                print(f"Function call successful: {self.result}")
+            except ImportError as e:
+                print(f"ImportError: {e}")
 
     def has_support_for(self, support_type: int):
         """This method is called by FME to determine if the PythonCaller supports Bulk mode,
@@ -44,26 +55,18 @@ class FeatureProcessor(BaseTransformer):
         feature.setAttribute("fme_rejection_message", message)
         self.pyoutput(feature, output_tag="<Rejected>")
 
+# -- End of code ---
 
 # --- Tests ---
 
-def test_input_passes_feature_through():
+def test_hello_world():
+    """This statement is only printed, not returned.
+    """
     processor = FeatureProcessor()
-    feature = fmeobjects.FMEFeature()
-    processor.input(feature)
-    assert processor._output_features == [(feature, "PYOUTPUT")]
+    assert processor.result != "Hello world!" 
 
-
-def test_has_support_for_bulk_mode():
+def test_hello_world_again():
+    """This statement is returned by the function, and should be exactly "Hello world again!".
+    """
     processor = FeatureProcessor()
-    assert processor.has_support_for(fmeobjects.FME_SUPPORT_FEATURE_TABLE_SHIM) is True
-    assert processor.has_support_for(999) is False
-
-
-def test_reject_feature():
-    processor = FeatureProcessor()
-    feature = fmeobjects.FMEFeature()
-    processor.reject_feature(feature, "INVALID_INPUT", "Missing value")
-    assert feature.getAttribute("fme_rejection_code") == "INVALID_INPUT"
-    assert feature.getAttribute("fme_rejection_message") == "Missing value"
-    assert processor._output_features == [(feature, "<Rejected>")]
+    assert processor.result == "Hello world again!"

@@ -21,7 +21,11 @@ class GEFHeader:
 
 @dataclass
 class GEFProfile:
-    """A parsed GEF file: header metadata + depth profile rows."""
+    """A parsed GEF file: header metadata + depth profile rows.
+
+    Use `to_records()` to get a flat list of dicts, one per row, each
+    containing both the header geo-metadata and the row's column values.
+    """
 
     header: GEFHeader = field(default_factory=GEFHeader)
     column_names: list[str] = field(default_factory=list)
