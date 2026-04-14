@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profielentoolbox</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clay:   #2C2416;
+      --sand:   #A89070;
+      --loam:   #6B5240;
+      --chalk:  #F0EBE3;
+      --deep:   #1A1410;
+      --accent: #C8842A;
+      --muted:  #7A6A58;
+      --line:   rgba(168,144,112,0.2);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--deep);
+      color: var(--chalk);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(26,20,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--chalk); }
+
+    /* ── HERO ────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      padding-top: 80px;
+    }
+    .hero-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5rem 4rem 5rem 5rem;
+      border-right: 1px solid var(--line);
+    }
+    .hero-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--chalk);
+      margin-bottom: 1.5rem;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 400px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--accent);
+      color: var(--deep);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      padding: 0.85rem 1.75rem;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: transparent;
+      color: var(--chalk);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      padding: 0.85rem 1.75rem;
+      border: 1px solid var(--line);
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--sand); transform: translateY(-1px); }
+    .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    /* hero image placeholder */
+    .hero-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--clay);
+      min-height: 60vh;
+    }
+    /* ── REPLACE this block with <img src="..." style="width:100%;height:100%;object-fit:cover;"> ── */
+    .hero-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+    .placeholder-icon { width: 40px; height: 40px; opacity: 0.3; }
+    /* ── END placeholder ─────────────────────────────────── */
+
+    /* ── STATS STRIP ─────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .stat {
+      padding: 2.5rem 3rem;
+      border-right: 1px solid var(--line);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Fraunces', serif;
+      font-size: 3rem;
+      font-weight: 300;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── SECTION SHARED ──────────────────────────────────── */
+    section { padding: 6rem 5rem; }
+    .section-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 300;
+      line-height: 1.2;
+      color: var(--chalk);
+      margin-bottom: 1.25rem;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.8;
+    }
+
+    /* ── HOW IT WORKS ────────────────────────────────────── */
+    .how { background: var(--clay); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 4rem;
+      border: 1px solid var(--line);
+    }
+    .step {
+      padding: 2.5rem;
+      border-right: 1px solid var(--line);
+      position: relative;
+    }
+    .step:last-child { border-right: none; }
+    .step-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.25rem;
+    }
+    .step h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--chalk);
+      margin-bottom: 0.75rem;
+    }
+    .step p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+    code {
+      font-family: 'DM Mono', monospace;
+      background: rgba(200,132,42,0.12);
+      color: var(--accent);
+      font-size: 0.82em;
+      padding: 0.1em 0.4em;
+    }
+
+    /* ── PROBLEM / SOLUTION ──────────────────────────────── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .split-col {
+      padding: 5rem;
+      border-right: 1px solid var(--line);
+    }
+    .split-col:last-child { border-right: none; }
+    .split-col h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.4rem;
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+    .check-list li {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      font-size: 0.92rem; color: var(--muted);
+    }
+    .icon-bad  { color: #C8432A; flex-shrink: 0; margin-top: 3px; }
+    .icon-good { color: #5BAA65; flex-shrink: 0; margin-top: 3px; }
+
+    /* ── IMAGE GALLERY ───────────────────────────────────── */
+    .gallery {
+      background: var(--clay);
+      border-top: 1px solid var(--line);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    /* ── REPLACE .img-slot divs with <img src="..." style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;"> ── */
+    .img-slot {
+      aspect-ratio: 4/3;
+      background: var(--loam);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 0.5rem;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      opacity: 0.6;
+    }
+    .img-slot-wide {
+      grid-column: span 2;
+    }
+    .img-caption {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 0.5rem;
+    }
+
+    /* ── CODE BLOCK ──────────────────────────────────────── */
+    .code-section { background: var(--deep); }
+    .code-block {
+      background: var(--clay);
+      border: 1px solid var(--line);
+      padding: 2rem 2.5rem;
+      margin-top: 3rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .code-block .kw  { color: var(--accent); }
+    .code-block .cm  { color: var(--muted); }
+    .code-block .str { color: #8EC07C; }
+
+    /* ── CTA ─────────────────────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      padding: 8rem 5rem;
+      border-top: 1px solid var(--line);
+    }
+    .cta-section h2 { margin-bottom: 1.25rem; }
+    .cta-section p { color: var(--muted); margin-bottom: 2.5rem; }
+    .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ──────────────────────────────────────────── */
+    footer {
+      padding: 2rem 5rem;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--chalk); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-text { padding: 4rem 1.5rem 3rem; }
+      .hero-visual { min-height: 300px; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { border-right: none; border-bottom: 1px solid var(--line); padding: 2rem 1.5rem; }
+      section { padding: 4rem 1.5rem; }
+      .how, .gallery, .split { padding: 4rem 1.5rem; }
+      .split { grid-template-columns: 1fr; }
+      .split-col { padding: 2.5rem 0; border-right: none; border-bottom: 1px solid var(--line); }
+      .steps { grid-template-columns: 1fr; }
+      .step { border-right: none; border-bottom: 1px solid var(--line); }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .img-slot-wide { grid-column: span 1; }
+      .cta-section { padding: 4rem 1.5rem; }
+      footer { flex-direction: column; gap: 0.5rem; padding: 1.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">profielentoolbox</a>
+    <ul class="nav-links">
+      <li><a href="#hoe-het-werkt">Aanpak</a></li>
+      <li><a href="#resultaten">Resultaten</a></li>
+      <li><a href="#code">Code</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-text">
+      <p class="hero-tag">Python · FME · GIS · Data Engineering</p>
+      <h1>Diepteprofielen,<br /><em>professioneel</em><br />verwerkt.</h1>
+      <p class="hero-sub">
+        De Profielentoolbox verwerkt GEF-bestanden razendsnel naar gestructureerde data,
+        klaar voor gebruik in FME-workflows en GIS-omgevingen.
+      </p>
+      <div class="hero-ctas">
+        <a class="btn-primary" href="#contact">Gesprek plannen →</a>
+        <a class="btn-ghost" href="https://github.com/jelledijkema/profielentoolbox" target="_blank">Bekijk op GitHub</a>
+      </div>
+    </div>
+
+    <!-- HERO AFBEELDING
+         Vervang de div hieronder door:
+         <img src="images/hero.jpg" alt="Diepteprofiel visualisatie" style="width:100%;height:100%;object-fit:cover;display:block;" />
+    -->
+    <div class="hero-visual">
+      <div class="hero-img-placeholder">
+        <svg class="placeholder-icon" viewBox="0 0 40 40" fill="none">
+          <rect x="4" y="4" width="32" height="32" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="14" cy="14" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 27l9-9 6 6 5-5 12 9" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Voeg hier een afbeelding toe<br />(bijv. een GEF-profiel of FME-workflow)
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">10×</div>
+      <div class="stat-label">snellere verwerking vs. handmatig</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">getest met geautomatiseerde suite</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">GEF</div>
+      <div class="stat-label">directe ondersteuning voor het formaat</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="hoe-het-werkt">
+    <p class="section-tag">Werkwijze</p>
+    <h2>Van GEF-bestand<br />tot FME-feature.</h2>
+    <p class="lead">
+      Geen handmatige conversie meer. De toolbox verwerkt het volledige sonderingsprofiel
+      inclusief georeferentie-attributen, klaar voor directe import.
+    </p>
+    <div class="steps">
+      <div class="step">
+        <p class="step-num">01 —</p>
+        <h3>GEF aanleveren</h3>
+        <p>Geef het pad naar het <code>.gef</code> bestand op. De toolbox leest de header en meetreeks automatisch uit.</p>
+      </div>
+      <div class="step">
+        <p class="step-num">02 —</p>
+        <h3>Verwerken & valideren</h3>
+        <p>Coordinaatstelsels worden herkend, dieptewaarden geconverteerd en output gevalideerd tegen het dataschema.</p>
+      </div>
+      <div class="step">
+        <p class="step-num">03 —</p>
+        <h3>Inlezen in FME</h3>
+        <p>De PythonCaller importeert de module en retourneert gestructureerde feature-lijsten, direct bruikbaar in de workflow.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM / SOLUTION -->
+  <section style="padding:0;" id="resultaten">
+    <div class="split">
+      <div class="split-col" style="background: var(--deep);">
+        <p class="section-tag">Vroeger</p>
+        <h3>PythonCaller als black box</h3>
+        <ul class="check-list">
+          <li><span class="icon-bad">✗</span> Scripts verstopt in .fmw bestanden</li>
+          <li><span class="icon-bad">✗</span> Geen versiehistorie, geen git</li>
+          <li><span class="icon-bad">✗</span> Debuggen via logregels</li>
+          <li><span class="icon-bad">✗</span> Copy-paste tussen projecten</li>
+          <li><span class="icon-bad">✗</span> Testen niet mogelijk buiten FME</li>
+        </ul>
+      </div>
+      <div class="split-col" style="background: var(--clay);">
+        <p class="section-tag">Nu</p>
+        <h3>Een geïnstalleerd Python-pakket</h3>
+        <ul class="check-list">
+          <li><span class="icon-good">✓</span> Volledige IDE-ondersteuning (VSCode, PyCharm)</li>
+          <li><span class="icon-good">✓</span> Git-history met betekenisvolle commits</li>
+          <li><span class="icon-good">✓</span> Unit tests draaien in CI/CD</li>
+          <li><span class="icon-good">✓</span> Herbruikbaar via <code>pip install</code></li>
+          <li><span class="icon-good">✓</span> PythonCaller als dunne wrapper</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="gallery">
+    <p class="section-tag">In de praktijk</p>
+    <h2>Resultaten uit het veld.</h2>
+    <p class="lead">Hieronder een greep uit de projecten waarbij de toolbox is ingezet.</p>
+
+    <div class="gallery-grid">
+
+      <!-- AFBEELDING 1 (breed) — vervang door: -->
+      <!-- <div>
+             <img src="images/workflow-fme.png" alt="FME workflow met PythonCaller" style="width:100%;aspect-ratio:8/3;object-fit:cover;display:block;" />
+             <p class="img-caption">FME-workflow met geïntegreerde PythonCaller module</p>
+           </div> -->
+      <div>
+        <div class="img-slot img-slot-wide">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Afbeelding 1 — breed (bijv. FME-workflow screenshot)
+        </div>
+        <p class="img-caption">FME-workflow met geïntegreerde PythonCaller module</p>
+      </div>
+
+      <!-- AFBEELDING 2 — vervang door: -->
+      <!-- <div>
+             <img src="images/gef-output.png" alt="GEF output in QGIS" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;" />
+             <p class="img-caption">Diepteprofiel gevisualiseerd in QGIS</p>
+           </div> -->
+      <div>
+        <div class="img-slot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Afbeelding 2
+        </div>
+        <p class="img-caption">Diepteprofiel gevisualiseerd in QGIS</p>
+      </div>
+
+      <!-- AFBEELDING 3 — vervang door: -->
+      <!-- <div>
+             <img src="images/test-output.png" alt="Test output" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;" />
+             <p class="img-caption">Geautomatiseerde testresultaten</p>
+           </div> -->
+      <div>
+        <div class="img-slot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Afbeelding 3
+        </div>
+        <p class="img-caption">Geautomatiseerde testresultaten</p>
+      </div>
+
+      <!-- AFBEELDING 4 — vervang door: -->
+      <!-- <div>
+             <img src="images/kaart.png" alt="Kaartvisualisatie" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;" />
+             <p class="img-caption">Georeferentie-output op kaart</p>
+           </div> -->
+      <div>
+        <div class="img-slot">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <rect x="3" y="3" width="18" height="18" rx="1"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Afbeelding 4
+        </div>
+        <p class="img-caption">Georeferentie-output op kaart</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CODE EXAMPLE -->
+  <section class="code-section" id="code">
+    <p class="section-tag">Integratie</p>
+    <h2>Drie regels code.</h2>
+    <p class="lead">
+      De PythonCaller blijft een dunne wrapper. Alle logica leeft in het pakket —
+      getest, gedocumenteerd, versioned.
+    </p>
+    <div class="code-block">
+      <span class="cm"># In je FME PythonCaller:</span><br />
+      <span class="kw">from</span> profielentoolbox.extract_gef <span class="kw">import</span> parse_gef<br />
+      <br />
+      profile = parse_gef(<span class="str">"pad/naar/bestand.gef"</span>)<br />
+      records = profile.to_records()  <span class="cm"># lijst van dicts per dieptemeting</span><br />
+      <br />
+      <span class="cm"># Elke record bevat: x, y, z, coordinate_system, + meetreeks</span>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="contact">
+    <p class="section-tag">Samenwerking</p>
+    <h2>Klaar om te starten?</h2>
+    <p>We denken graag mee over jouw GIS- en data-engineering vraagstuk.</p>
+    <div class="cta-btns">
+      <a class="btn-primary" href="mailto:jouw@emailadres.nl">Neem contact op →</a>
+      <a class="btn-ghost" href="https://github.com/jelledijkema/profielentoolbox" target="_blank">Bekijk de repository</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2025 Profielentoolbox</span>
+    <span>
+      <a href="https://github.com/jelledijkema/profielentoolbox" target="_blank">GitHub</a>
+    </span>
+  </footer>
+
+</body>
+</html>
